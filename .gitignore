@@ -1,0 +1,13 @@
+# Ignore RStudio session files
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# System junk
+.DS_Store
+Thumbs.db
+
+# Optional: ignore large or raw data
+# data/raw/
+# *.zip
