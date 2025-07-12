@@ -45,6 +45,8 @@ Create a cleaned version of the dataframe.
  - Your output should be a dataframe named `clean_data`. 
 
  - All column names and values should match the table below.
+ 
+ 
 
 | Column Name | Criteria                                                |
 |-------------|---------------------------------------------------------|
@@ -56,6 +58,52 @@ Create a cleaned version of the dataframe.
 | loyalty_years | Oridinal. </br>The number of years the customer has been a part of the loyalty program. One of five ordered categories, '0-1', '1-3', '3-5', '5-10', '10+'. </br>Missing values should be replaced with '0-1'.|
 | joining_month | Nominal. </br>The month the customer joined the loyalty program. One of 12 values "Jan", "Feb", "Mar", "Apr", etc. </br>Missing values should be replaced with "Unknown".|
 | promotion | Nominal. </br>Did the customer join the loyalty program as part of a promotion? Either 'Yes' or 'No'. </br>Missing values should be replaced with 'No'.|
+
+
+
+
+```{r load libraries, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(stringr)
+options(readr.show_col_types = FALSE)
+
+```
+
+
+```{r load and clean data}
+loyalty <- read_csv("C:/Users/hp/Desktop/Data Science/R/Datacamp/Data Science Test Exam/data/loyalty.csv", show_col_types = FALSE)
+
+# Clean the data
+clean_data <- loyalty_data |>
+  # Ensure correct column types and apply cleaning rules
+  mutate(
+    # Ensure spend is numeric, replace NA with 0, round to 2 decimal places
+    spend = round(replace_na(as.numeric(spend), 0), 2),
+    
+    # Convert first_month to numeric, replace NA with 0, round to 2 decimal places
+    first_month = round(replace_na(as.numeric(first_month), 0), 2),
+    
+    # Convert items_in_first_month to integer, replace NA with 0
+    items_in_first_month = replace_na(as.integer(items_in_first_month), 0),
+    
+    # Region: Replace NA with "Unknown"
+    region = replace_na(region, "Unknown"),
+    
+    # Loyalty years: Replace NA with '0-1', set as ordered factor
+    loyalty_years = factor(replace_na(loyalty_years, "0-1"),
+                           levels = c("0-1", "1-3", "3-5", "5-10", "10+"),
+                           ordered = TRUE),
+    
+    # Joining month: Replace NA with "Unknown"
+    joining_month = replace_na(joining_month, "Unknown"),
+    
+    # Promotion: Replace NA with 'No' and standardize to proper case
+    promotion = str_to_title(replace_na(promotion, "No"))
+  )
+
+#head(clean_data)
+
+```
 
 
 
@@ -75,6 +123,26 @@ Producing a table showing the difference in the average spend by number of years
 
  - Your answers should be rounded to 2 decimal places.   
  
+ 
+```{r Task 2}
+loyalty_clean <- loyalty_data |>
+  mutate(
+    spend = round(replace_na(as.numeric(spend), 0), 2),
+    loyalty_years = replace_na(loyalty_years, "0-1"),
+    loyalty_years = factor(loyalty_years,
+                           levels = c("0-1", "1-3", "3-5", "5-10", "10+"),
+                           ordered = TRUE)
+  )
+
+# Group and summarize
+spend_by_years <- loyalty_clean |>
+  group_by(loyalty_years) |>
+  summarise(
+    avg_spend = round(mean(spend), 2),
+    var_spend = round(var(spend), 2),
+    .groups = "drop"
+  )
+```
  
  
  
