@@ -65,6 +65,7 @@ Create a cleaned version of the dataframe.
 ```{r load libraries, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(stringr)
+library(tidymodels)
 options(readr.show_col_types = FALSE)
 
 ```
@@ -100,8 +101,6 @@ clean_data <- loyalty_data |>
     # Promotion: Replace NA with 'No' and standardize to proper case
     promotion = str_to_title(replace_na(promotion, "No"))
   )
-
-#head(clean_data)
 
 ```
 
@@ -155,6 +154,47 @@ Fit a baseline model to predict the spend over the year for each customer.
  2. Use “test.csv” to predict new values based on your model. You must return a dataframe named `base_result`, that includes `customer_id` and `spend`. The `spend` column must be your predicted values.
  
  
+```{r baseline linear regression model}
+# 0. Load libraries
+library(tidymodels)
+library(readr)
+
+# 1. Read data
+train_data <- read_csv("C:/Users/hp/Desktop/Data Science/R/Datacamp/Data Science Test Exam/data/train.csv", show_col_types = FALSE)
+test_data  <- read_csv("C:/Users/hp/Desktop/Data Science/R/Datacamp/Data Science Test Exam/data/test.csv",  show_col_types = FALSE)
+
+# 2. Define the baseline model spec (linear regression)
+baseline_model_spec <- linear_reg() %>%
+  set_engine("lm")
+
+# 3. Build the recipe
+baseline_model_rec <- recipe(spend ~ ., data = train_data) %>%
+  update_role(customer_id, new_role = "id") 
+# 4. Assemble the workflow
+baseline_wf <- workflow() %>%
+  add_model(baseline_model_spec) %>%
+  add_recipe(baseline_model_rec)
+
+# 5. Fit on training data
+baseline_fit <- baseline_wf %>%
+  fit(data = train_data)
+
+# 6. Predict on test set and create base_result
+base_result <- baseline_fit %>%
+  predict(new_data = test_data) %>%
+  transmute(
+    customer_id = test_data$customer_id,
+    spend       = round(.pred, 2)  # Round predictions to 2 decimal places
+  )
+
+# 7. Inspect the first rows
+print(head(base_result))
+
+
+
+```
+ 
+ 
  
  
  
@@ -165,3 +205,42 @@ Fit a comparison model to predict the spend over the year for each customer.
  1. Fit your model using the data contained in “train.csv” </br></br>
 
  2. Use “test.csv” to predict new values based on your model. You must return a dataframe named `compare_result`, that includes `customer_id` and `spend`. The `spend` column must be your predicted values.
+ 
+```{r  comparision random forest model}
+# 0. Load libraries
+library(tidymodels)
+library(readr)
+
+# 1. Read data
+train_data <- read_csv("C:/Users/hp/Desktop/Data Science/R/Datacamp/Data Science Test Exam/data/train.csv", show_col_types = FALSE)
+test_data  <- read_csv("C:/Users/hp/Desktop/Data Science/R/Datacamp/Data Science Test Exam/data/test.csv",  show_col_types = FALSE)
+
+# 2. Define the baseline model spec (linear regression)
+rf_model_spec <- rand_forest() %>%
+  set_engine("ranger")
+
+# 3. Build the recipe
+rf_model_rec <- recipe(spend ~ ., data = train_data) %>%
+  update_role(customer_id, new_role = "id") 
+# 4. Assemble the workflow
+rf_wf <- workflow() %>%
+  add_model(baseline_model_spec) %>%
+  add_recipe(baseline_model_rec)
+
+# 5. Fit on training data
+rf_fit <- rf_wf %>%
+  fit(data = train_data)
+
+# 6. Predict on test set and create base_result
+rf_result <- rf_fit %>%
+  predict(new_data = test_data) %>%
+  transmute(
+    customer_id = test_data$customer_id,
+    spend       = round(.pred, 2)  # Round predictions to 2 decimal places
+  )
+
+# 7. Inspect the first rows
+print(head(rf_result)) 
+```
+ 
+ 
